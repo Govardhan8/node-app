@@ -20,6 +20,9 @@ app.listen(PORT, () => {
 
 // To connect to atlas mongoDB
 const MONGO_URL = process.env.MONGO_URL
+const message = {
+	message: 'no matching movie found',
+}
 
 const createConnection = async () => {
 	const client = new MongoClient(MONGO_URL)
@@ -48,13 +51,8 @@ app.post('/movies/add', async (request, response) => {
 //To get all movies/based on query params
 app.get('/movies', async (request, response) => {
 	const filter = request.query
-
-	if (filter.rating) {
-		filter.rating = parseFloat(filter.rating)
-	}
-
+	filter.rating ? (filter.rating = +filter.rating) : ''
 	let filterMovies = await getAllMovies(filter)
-
 	response.send(filterMovies)
 })
 
@@ -62,8 +60,7 @@ app.get('/movies', async (request, response) => {
 app.get('/movies/:id', async (request, response) => {
 	const { id } = request.params
 	const movie = await getMovieByID(id)
-	const errorMessage = 'No match found'
-	response.status(movie ? 200 : 404).send(movie ? movie : errorMessage)
+	response.status(movie ? 200 : 404).send(movie ? movie : message)
 })
 
 //To edit movies data based on id
@@ -79,9 +76,6 @@ app.put('/movies/:id', async (request, response) => {
 app.delete('/movies/:id', async (request, response) => {
 	const { id } = request.params
 	const result = await deleteMovieByID(id)
-	const message = {
-		message: 'no matching movie found',
-	}
 	response.status(200).send(result.deleteCount > 0 ? result : message)
 })
 
