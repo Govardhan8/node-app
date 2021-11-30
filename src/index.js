@@ -84,6 +84,10 @@ async function getAllMovies(filter) {
 	return await client.db('myDB').collection('movies').find(filter).toArray()
 }
 
+async function getMovieByID(id) {
+	return await client.db('myDB').collection('movies').findOne({ id: id })
+}
+
 async function addMultipleMovies(body) {
 	return await client.db('myDB').collection('movies').insertMany(body)
 }
@@ -101,8 +105,4 @@ async function updateMovieByID(id, body) {
 
 async function deleteMovieByID(id) {
 	return await client.db('myDB').collection('movies').deleteOne({ id: id })
-}
-
-async function getMovieByID(id) {
-	return await client.db('myDB').collection('movies').findOne({ id: id })
 }
