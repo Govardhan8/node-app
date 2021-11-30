@@ -27,3 +27,8 @@ const createConnection = async () => {
 
 //Creating a new connection to mongodb
 export const client = await createConnection()
+
+//Initial check up
+app.get('/', function (req, res) {
+	res.send('App is up and running!!')
+})
