@@ -12,7 +12,7 @@ const message = {
 	message: 'no matching movie found',
 }
 
-//To add movies data
+//To add/get movies data
 router
 	.route('/')
 	.post(async (request, response) => {
@@ -34,7 +34,7 @@ router.post('/add', async (request, response) => {
 	response.send(result)
 })
 
-//To get movies based on id
+//To get/update/delete movies based on id
 router
 	.route('/:id')
 	.get(async (request, response) => {
