@@ -1,107 +1,114 @@
-const { request, response } = require('express')
-const express = require('express')
-const app = express()
+import express from 'express'
+import { MongoClient } from 'mongodb'
+import dotenv from 'dotenv'
 
+dotenv.config()
+
+const app = express()
+app.use(express.json())
 app.get('/', (request, response) => {
 	response.send('Hello yall')
 })
 
-const movies = [
-	{
-		id: '100',
-		name: 'Iron man 2',
-		poster:
-			'https://m.media-amazon.com/images/M/MV5BMTM0MDgwNjMyMl5BMl5BanBnXkFtZTcwNTg3NzAzMw@@._V1_FMjpg_UX1000_.jpg',
-		rating: 7,
-		summary:
-			'With the world now aware that he is Iron Man, billionaire inventor Tony Stark (Robert Downey Jr.) faces pressure from all sides to share his technology with the military. He is reluctant to divulge the secrets of his armored suit, fearing the information will fall into the wrong hands. With Pepper Potts (Gwyneth Paltrow) and Rhodes (Don Cheadle) by his side, Tony must forge new alliances and confront a powerful new enemy.',
-		trailer: 'https://www.youtube.com/embed/wKtcmiifycU',
-		language: 'english',
-	},
-	{
-		id: '101',
-		name: 'No Country for Old Men',
-		poster:
-			'https://upload.wikimedia.org/wikipedia/en/8/8b/No_Country_for_Old_Men_poster.jpg',
-		rating: 8.1,
-		summary:
-			"A hunter's life takes a drastic turn when he discovers two million dollars while strolling through the aftermath of a drug deal. He is then pursued by a psychopathic killer who wants the money.",
-		trailer: 'https://www.youtube.com/embed/38A__WT3-o0',
-		language: 'english',
-	},
-	{
-		id: '102',
-		name: 'Jai Bhim',
-		poster:
-			'https://m.media-amazon.com/images/M/MV5BY2Y5ZWMwZDgtZDQxYy00Mjk0LThhY2YtMmU1MTRmMjVhMjRiXkEyXkFqcGdeQXVyMTI1NDEyNTM5._V1_FMjpg_UX1000_.jpg',
-		summary:
-			'A tribal woman and a righteous lawyer battle in court to unravel the mystery around the disappearance of her husband, who was picked up the police on a false case',
-		rating: 8.8,
-		trailer: 'https://www.youtube.com/embed/nnXpbTFrqXA',
-		language: 'tamil',
-	},
-	{
-		id: '103',
-		name: 'The Avengers',
-		rating: 8,
-		summary:
-			"Marvel's The Avengers (classified under the name Marvel Avengers\n Assemble in the United Kingdom and Ireland), or simply The Avengers, is\n a 2012 American superhero film based on the Marvel Comics superhero team\n of the same name.",
-		poster:
-			'https://terrigen-cdn-dev.marvel.com/content/prod/1x/avengersendgame_lob_crd_05.jpg',
-		trailer: 'https://www.youtube.com/embed/eOrNdBpGMv8',
-		language: 'english',
-	},
-	{
-		id: '104',
-		name: 'Interstellar',
-		poster: 'https://m.media-amazon.com/images/I/A1JVqNMI7UL._SL1500_.jpg',
-		rating: 8.6,
-		summary:
-			'When Earth becomes uninhabitable in the future, a farmer and ex-NASA\n pilot, Joseph Cooper, is tasked to pilot a spacecraft, along with a team\n of researchers, to find a new planet for humans.',
-		trailer: 'https://www.youtube.com/embed/zSWdZVtXT7E',
-		language: 'english',
-	},
-	{
-		id: '105',
-		name: 'Baahubali',
-		poster: 'https://flxt.tmsimg.com/assets/p11546593_p_v10_af.jpg',
-		rating: 8,
-		summary:
-			'In the kingdom of Mahishmati, Shivudu falls in love with a young warrior woman. While trying to woo her, he learns about the conflict-ridden past of his family and his true legacy.',
-		trailer: 'https://www.youtube.com/embed/sOEg_YZQsTI',
-		language: 'telugu',
-	},
-	{
-		id: '106',
-		name: 'Ratatouille',
-		poster:
-			'https://resizing.flixster.com/gL_JpWcD7sNHNYSwI1ff069Yyug=/ems.ZW1zLXByZC1hc3NldHMvbW92aWVzLzc4ZmJhZjZiLTEzNWMtNDIwOC1hYzU1LTgwZjE3ZjQzNTdiNy5qcGc=',
-		rating: 8,
-		summary:
-			'Remy, a rat, aspires to become a renowned French chef. However, he fails to realise that people despise rodents and will never enjoy a meal cooked by him.',
-		trailer: 'https://www.youtube.com/embed/NgsQ8mVkN8w',
-		language: 'english',
-	},
-]
-
-app.get('/movies', (request, response) => {
-	const { rating, language } = request.query
-	let filterMovies = movies
-	if (language) {
-		filterMovies = filterMovies.filter((movie) => movie.language === language)
-	}
-	if (rating) {
-		filterMovies = filterMovies.filter((movie) => movie.rating === +rating)
-	}
-
-	response.send(filterMovies)
-})
-app.get('/movies/:id', (request, response) => {
-	const movie = movies.find((movie) => movie.id === request.params.id)
-	const errorMessage = 'No match found'
-	response.status(movie ? 200 : 404).send(movie ? movie : errorMessage)
-})
 const PORT = 5000
 app.listen(PORT, () => {
 	console.log('App running on port', PORT)
 })
+
+// To connect to local mongoDB
+// const MONGO_URL = 'mongodb://localhost'
+
+// To connect to atlas mongoDB
+const MONGO_URL = process.env.MONGO_URL
+
+const createConnection = async () => {
+	const client = new MongoClient(MONGO_URL)
+	await client.connect()
+	console.log('Mongo connected')
+	return client
+}
+
+//Creating a new connection to mongodb
+const client = await createConnection()
+
+//To add movies data
+app.post('/movies', async (request, response) => {
+	const body = request.body
+	const result = await addMultipleMovies(body)
+	response.send(result)
+})
+
+//To add one movie data
+app.post('/movies/add', async (request, response) => {
+	const body = request.body
+	const result = await addMovie(body)
+	response.send(result)
+})
+
+//To get all movies/based on query params
+app.get('/movies', async (request, response) => {
+	const filter = request.query
+
+	if (filter.rating) {
+		filter.rating = parseFloat(filter.rating)
+	}
+
+	let filterMovies = await getAllMovies(filter)
+
+	response.send(filterMovies)
+})
+
+//To get movies based on id
+app.get('/movies/:id', async (request, response) => {
+	const { id } = request.params
+	const movie = await getMovieByID(id)
+	const errorMessage = 'No match found'
+	response.status(movie ? 200 : 404).send(movie ? movie : errorMessage)
+})
+
+//To edit movies data based on id
+app.put('/movies/:id', async (request, response) => {
+	const { id } = request.params
+	const body = request.body
+	const updatedMovie = await updateMovieByID(id, body)
+	const result = await getMovieByID(id)
+	response.send(result)
+})
+
+//To delete movies based on id
+app.delete('/movies/:id', async (request, response) => {
+	const { id } = request.params
+	const result = await deleteMovieByID(id)
+	const message = {
+		message: 'no matching movie found',
+	}
+	response.status(200).send(result.deleteCount > 0 ? result : message)
+})
+
+//Utils
+async function getAllMovies(filter) {
+	return await client.db('myDB').collection('movies').find(filter).toArray()
+}
+
+async function addMultipleMovies(body) {
+	return await client.db('myDB').collection('movies').insertMany(body)
+}
+
+async function addMovie(body) {
+	return await client.db('myDB').collection('movies').insertOne(body)
+}
+
+async function updateMovieByID(id, body) {
+	return await client
+		.db('myDB')
+		.collection('movies')
+		.updateOne({ id: id }, { $set: body })
+}
+
+async function deleteMovieByID(id) {
+	return await client.db('myDB').collection('movies').deleteOne({ id: id })
+}
+
+async function getMovieByID(id) {
+	return await client.db('myDB').collection('movies').findOne({ id: id })
+}
