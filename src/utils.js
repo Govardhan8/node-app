@@ -1,6 +1,6 @@
 import { client } from './index.js'
 
-//Utils
+//Utility functions
 async function getAllMovies(filter) {
 	return await client.db('myDB').collection('movies').find(filter).toArray()
 }
