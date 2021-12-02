@@ -2,6 +2,7 @@ import express from 'express'
 import { MongoClient } from 'mongodb'
 import dotenv from 'dotenv'
 import moviesRouter from './routes/movies.js'
+import usersRouter from './routes/users.js'
 import cors from 'cors'
 
 dotenv.config()
@@ -14,6 +15,7 @@ app.listen(PORT, () => {
 	console.log('App running on port', PORT)
 })
 app.use('/movies', moviesRouter)
+app.use('/users', usersRouter)
 // To connect to local mongoDB
 // const MONGO_URL = 'mongodb://localhost'
 

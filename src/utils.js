@@ -30,6 +30,18 @@ async function deleteMovieByID(id) {
 		.deleteOne({ _id: ObjectId(id) })
 }
 
+async function addUser(body) {
+	return await client.db('myDB').collection('users').insertOne(body)
+}
+
+async function userExists(name) {
+	const result = await client
+		.db('myDB')
+		.collection('users')
+		.find({ username: name })
+		.toArray()
+	return result ? result : null
+}
 export {
 	addMultipleMovies,
 	addMovie,
@@ -37,4 +49,6 @@ export {
 	getMovieByID,
 	updateMovieByID,
 	deleteMovieByID,
+	addUser,
+	userExists,
 }
