@@ -4,6 +4,7 @@ import dotenv from 'dotenv'
 import moviesRouter from './routes/movies.js'
 import usersRouter from './routes/users.js'
 import cors from 'cors'
+import { addRecipes, getAllRecipes } from './utils.js'
 
 dotenv.config()
 
@@ -16,6 +17,15 @@ app.listen(PORT, () => {
 })
 app.use('/movies', moviesRouter)
 app.use('/users', usersRouter)
+app.get('/recipes', async (request, response) => {
+	const recipe_data = await getAllRecipes()
+	response.send(recipe_data)
+})
+
+app.post('/recipes/add', async (request, response) => {
+	const result = await addRecipes(request.body)
+	response.send(result)
+})
 // To connect to local mongoDB
 // const MONGO_URL = 'mongodb://localhost'
 

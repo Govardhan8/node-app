@@ -1,5 +1,6 @@
 import { client } from './index.js'
 import { ObjectId } from 'mongodb'
+import bcrypt from 'bcrypt'
 
 //Utility functions
 async function getAllMovies(filter) {
@@ -30,6 +31,13 @@ async function deleteMovieByID(id) {
 		.deleteOne({ _id: ObjectId(id) })
 }
 
+async function hashPassword(password) {
+	const numberOfRounds = 10
+	const salt = await bcrypt.genSalt(numberOfRounds)
+	const HashedPassword = await bcrypt.hash(password, salt)
+	return HashedPassword
+}
+
 async function addUser(body) {
 	return await client.db('myDB').collection('users').insertOne(body)
 }
@@ -40,8 +48,17 @@ async function userExists(name) {
 		.collection('users')
 		.find({ username: name })
 		.toArray()
-	return result ? result : null
+	return result
 }
+
+async function addRecipes(body) {
+	return await client.db('myDB').collection('recipe').insertMany(body)
+}
+
+async function getAllRecipes() {
+	return await client.db('myDB').collection('recipe').find({}).toArray()
+}
+
 export {
 	addMultipleMovies,
 	addMovie,
@@ -49,6 +66,9 @@ export {
 	getMovieByID,
 	updateMovieByID,
 	deleteMovieByID,
+	hashPassword,
 	addUser,
 	userExists,
+	addRecipes,
+	getAllRecipes,
 }
